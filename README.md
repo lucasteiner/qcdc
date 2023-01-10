@@ -4,8 +4,20 @@ which walks through the directory tree and collects data from Turbomole files.
 Data is saved in dictionaries and written to .json format files.
 Pandas is recommended for post processing of the data, while it also is possible to import .json files with Excel.
 
-After downloading the file "qcdc.py" the program is called via 
-`python3 ~/Downloads/qcdc.py`
+The program is written for Linux based OS.
+
+After downloading the file "qcdc.py" the program is called via `python3 ~/Downloads/qcdc.py`
+
+The directories should contain the default files like control, coord, energy, vibspectrum in correct format.  
+The program starts in the working directory and walks through everything below,
+however, Turbomole experience advices to use a flat directory system, while I prefer 2 levels.
+
+
+I recommend to install miniconda for beginners:
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
+
+Have a look at the link below for installing packages:
+(https://packaging.python.org/en/latest/tutorials/installing-packages/)
 
 The following libraries have to be imported first:
 * pandas
@@ -14,14 +26,15 @@ The following libraries have to be imported first:
 * re
 * molmass (https://pypi.org/project/molmass/)
 
-Have a look at the link below for installing packages:
-(https://packaging.python.org/en/latest/tutorials/installing-packages/)
 
-If you work on curta, I can recommend to install miniconda:
-https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
-In case of questions, do not hesitate to contact me:
+### Recently:
+Uploaded on Github :man_with_gua_pi_mao:
+
+### Problems
+Absent files are no problem but files with non-default format may lead to problems.
+If you need certain data, it should be easy to expand the program.
+Feel free to contact me.
+
+## Please, tell me what you think! :email:
 https://www.bcp.fu-berlin.de/en/chemie/chemie/forschung/PhysTheoChem/agpaulus/group-members/phd-students/luca-steiner.html
-
-### Recent Changes:
-Upload on Github
