@@ -4,9 +4,8 @@ from molmass import Formula
 import pandas as pd
 import os
 import numpy as np
-import math
+#import math
 import re
-#CHANGES
 
 ###VARIABLE DEFINITIONS###
 from scipy.constants.constants import h, k, c, N_A, R, pi, milli
@@ -57,9 +56,10 @@ def main (infile='tree.dat'):
         #the function changes ser by saving information from 'control'
         get_control2(ser, root, files)
 
-        #gets last saved energy from energy file
+        #gets last saved [0]: total energy [1]:kinetic energy, [2]:potential energy
         if 'energy' in files:
-            get_energy (ser, root) 
+            ser['SPE'] = get_energy2(root)[0]*EH2KJMOL 
+            #print(ser['SPE'])
 
         #read coordinate information and calculate moments of inertia
         if 'coord' in files: #we assume turbomole format
@@ -67,7 +67,7 @@ def main (infile='tree.dat'):
             xyz, elem = get_coord3(root) #bohr
 
             #We need mass information of the elements
-            elem_masses = mass_from_elements(elem) #g/mol
+            elem_masses = mass_of_elements(elem) #g/mol
             ser[M_MASS] = np.sum(elem_masses)
 
             #When we calculate moments of inertia, we need centralized coordinates
@@ -78,7 +78,7 @@ def main (infile='tree.dat'):
                     'zz': moment_of_inertia(xyz_central, elem_masses, 0, 1)
                     }
             momi = [ser[MOMI]['xx'],ser[MOMI]['yy'],ser[MOMI]['zz']]
-            print(momi)
+            #print(momi)
             #get_coord (ser, root, dat='last-geo.xyz') 
             #print(ser[inerta], ser[inertb], ser[inertc])
 
@@ -91,15 +91,15 @@ def main (infile='tree.dat'):
             ser['thermal corrections'] = calculate_gibbs(freqs, momi, ser[M_MASS])
             positive_freqs = np.abs(freqs)
         #do this for transition states, frequencies start to count from 1!
-        if ser['vibspectrum'][1] < 0.:
-            ser['thermal corrections (sign inverted)'] = calculate_gibbs(positive_freqs, momi, ser[M_MASS])
-            ts_freq = positive_freqs
-            ts_freqs[0] = -ts_freqs[0]
-            ser['thermal corrections (sign inverted) for TS'] = calculate_gibbs(ts_freqs, momi, ser[M_MASS])
-        else:
-            #In case, all frequencies are positive, we just use copy the old results, such that it is easier to use later.
-            #However, this is not a deep copy. A deep copy should not be necessary.
-            ser['thermal corrections (sign inverted)'] = ser['thermal corrections'].copy() 
+            if ser['vibspectrum'][1] < 0.:
+                ser['thermal corrections (sign inverted)'] = calculate_gibbs(positive_freqs, momi, ser[M_MASS])
+                ts_freq = positive_freqs
+                ts_freqs[0] = -ts_freqs[0]
+                ser['thermal corrections (sign inverted) for TS'] = calculate_gibbs(ts_freqs, momi, ser[M_MASS])
+            else:
+                #In case, all frequencies are positive, we just use copy the old results, such that it is easier to use later.
+                #However, this is not a deep copy. A deep copy should not be necessary.
+                ser['thermal corrections (sign inverted)'] = ser['thermal corrections'].copy() 
 
 
         #gets information on HOMO and LUMO (energy and orbital number)
@@ -139,16 +139,17 @@ def get_control2(ser, root, files):#dat='control'):
                     ser['SCFDamp'] = dict(re.findall(equality_re, token))
                 elif token.startswith('fermi'):
                     ser['Fermi'] = dict(re.findall(equality_re, token))
-                    print(ser['Fermi'])
+                    #print(ser['Fermi'])
                 elif token.startswith('scfconv '):
                     ser['SCFConv'] = int(token.split()[1])
                 elif token.startswith('rij'):
                     ser['RI'] = True
                 elif token.startswith('dft'):
-                    ser['DFT'] = right_words(['functional','gridsize'], token)  #TODO compile explicit regexes and use them instead
-                #get Basis, if Basis is the same for all elements save single Basis Set and remove Basis for elements
+                    #TODO compile explicit regexes and use them instead
+                    ser['DFT'] = right_words(['functional','gridsize'], token)  
+                #if Basis is the same for all elements save single Basis Set and remove Basis for elements
                 elif token.startswith('atoms'):
-                    ser['BasisForElement'] = dict(re.findall(equality_basis_re, token))  #BasisForAtoms is not implemented
+                    ser['BasisForElement'] = dict(re.findall(equality_basis_re, token))
                     ser['BasisSet'] = set(ser['BasisForElement'].values())
                     #I kick it out again because its unusual 
                     if len(ser['BasisSet']) == 1: 
@@ -169,11 +170,11 @@ def right_word(substring, string):
     return (re.search("[\n\r][ \t]*"+substring+"[ \t]*([^\n\r]*)", string))
 def right_words(substringlist, string):
     """returns right word of substring for a list of substrings"""
-    #return dict((substring, re.search(substring+"[ \t]*([^\n\r]*)", string)[1]) for substring in substringlist)
-    print(dict((substring, re.search(substring+"[ \t]*([^\n\r]*)", string)[1]) for substring in substringlist))
+    return dict((substring, re.search(substring+"[ \t]*([^\n\r]*)", string)[1]) for substring in substringlist)
+    #print(dict((substring, re.search(substring+"[ \t]*([^\n\r]*)", string)[1]) for substring in substringlist))
 
-
-RE_VIBSPECTRUM = re.compile(r"([-+]?\d*\.*\d+)[ a]+([-+]?\d*\.*\d+)")#[ a]+[-+]?\d*\.*\d+")#add this to obtain IR intensities eventually
+#[ a]+[-+]?\d*\.*\d+")#add this to obtain IR intensities eventually
+RE_VIBSPECTRUM = re.compile(r"([-+]?\d*\.*\d+)[ a]+([-+]?\d*\.*\d+)")
 def get_vibspectrum(root):
         """
         extract information (frequencies) from 'vibspectrum'
@@ -188,9 +189,10 @@ def get_vibspectrum(root):
 def calculate_gibbs(freqs, momi, mass, temp=TEMPERATURE, press=PRESSURE, sig=SIGMA, cutoff=QRRHO_CUTOFF):
     """
     saver : dict for saving information
-    temperature, pressure, sigma : these parameters are defined by default values and saved in the dictionary but stay flexible through being arguments of the function
     freqs : np array containing frequencies
     momi : array with moments of inertia
+    temperature, pressure, sigma : these parameters are defined by default values 
+    and saved in the dictionary but stay flexible through being arguments of the function
 
     We use different versions to approximate Gibbs free energy:
 
@@ -218,7 +220,8 @@ def calculate_gibbs(freqs, momi, mass, temp=TEMPERATURE, press=PRESSURE, sig=SIG
     saver['chempot V=1L qRRHO'] = saver['chempot V=1L'] - calc_grimme_short(low_positive_freqs, temp)
     return saver
 
-def calc_partition_c (allfreqs, mom_inert, mass, sigma=SIGMA, temp=TEMPERATURE, n_part=MOLES, v=MOLES * R * TEMPERATURE / PRESSURE):
+def calc_partition_c (allfreqs, mom_inert, mass, 
+        sigma=SIGMA, temp=TEMPERATURE, n_part=MOLES, v=MOLES * R * TEMPERATURE / PRESSURE):
     """Formulas can be obtained from Mortimer Physical Chemistry chapter 21.
 
     However there is a mistake in TM7.3 (they do it correct but state it wrong)
@@ -234,22 +237,16 @@ def calc_partition_c (allfreqs, mom_inert, mass, sigma=SIGMA, temp=TEMPERATURE, 
     #usually translational partition_c function is chosen.
     qtrans = (2*pi*mass*k*temp/h/h)**1.5 * v /n_part/N_A 
     qvib = np.prod(1/(1-np.exp(-freqs/k/temp)))
-    qrot = pi**0.5 * ((8*pi*pi*k*temp/h/h)**3 *(mom_inert[0]*mom_inert[1]*mom_inert[2]*amu**3*a0**6))**0.5 /  sigma
+    qrot = pi**0.5 * ((8*pi*pi*k*temp/h/h)**3 
+            *(mom_inert[0]*mom_inert[1]*mom_inert[2]*amu**3*a0**6))**0.5 /  sigma
     calczpe = 0.5 *  np.sum(freqs)*N_A/1000
-    chempot = calczpe - R*temp*math.log(qtrans*qvib*qrot)/1000 #Gibbs Free E is called chem. pot. in TM, thats why...
+    chempot = calczpe - R*temp*np.log(qtrans*qvib*qrot)/1000 
     return qtrans, qvib, qrot, calczpe, chempot
 
 def calc_grimme_short (freq_cm, temp=TEMPERATURE):
-    """
-    calc_grimme_short
-    takes np array with vibrational frequencies in wavenumbers 
-    and calculates a value which can be added to the Gibbs free enthalpy.
-    The value comes from a quasi RRHO approximation which is explained by Grimme 2012.
-    We assume that all frequencies lower than "cutoff" should be approximated by a free rotator
-    to prevent unphysically high contributions to the entropy
-
-    The function calculates a value which can be added to the Gibbs free enthalpy
-    to obtain a corrected Gibbs enthalpy.
+    """Return value is added to the Gibbs free enthalpy 
+    to obtain a qRRHO corrected Gibbs enthalpy.
+    freq_cm : np array with vibrational frequencies in wavenumbers 
     """
     Bav = 1e-44#kg*m^2
     freq_s = freq_cm*100.0*c#1/s
@@ -285,42 +282,15 @@ def get_energy(ser, root, dat='energy'):
             ser[cut]=float(line.split()[i])
         ser['SPE kjmol'] = ser['Single Point Energy']*EH2KJMOL
 
-def calc_time (line):
-    time = 0
-    try:
-        if line.split()[4] == 'seconds':
-            time =  float(line.split()[3])
-        elif line.split()[7] == 'seconds':
-            time =  float(line.split()[3])*60 
-            time += float(line.split()[6])
-        elif line.split()[9] == 'seconds':
-            time =  float(line.split()[3])*3600 
-            time += float(line.split()[5])*60 
-            time += float(line.split()[8])
-        elif line.split()[11] == 'seconds':
-            time =  float(line.split()[3])*3600*24
-            time +=  float(line.split()[5])*3600
-            time += float(line.split()[7])*60 
-            time += float(line.split()[10])
-        else:
-            print('is time shorter than one second or longer than days? Then implement this')
-    except IndexError as e:
-        print(f"{e} in function:calc_time, line={line}")
-    return time
+#Regex searches for an integer and 3 floats
+RE_ENERGY = re.compile("^[0-9 ]{6}\s([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)")#last one is element symbol
+def get_energy2(root, dat='energy'):
+    """returns vector with element[0]: total energy [1]:kinetic energy, [2]:potential energy"""
+    with open(root+os.sep+dat) as file:
+        return np.array(re.findall(RE_ENERGY,file.readlines()[-2])[0]).astype(float) #one D too many...
 
-def newest (ser, root, dats):
-    """returns newest file"""
-    time = []
-    for dat in dats:
-        try:
-            time.append(os.path.getmtime(root+os.sep+dat))   #gets time since last modification for each file in seconds
-        except OSError:                   #and OSError if file does not exist
-            print('this is happening')
-            time.append(float('inf'))
-            continue
-    return dats[time.index(min(time))]#returns filename with smallest time
-
-RE_COORD = re.compile("([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([a-z]{1,2})")#last one is element symbol
+#Regex searches for 3 floats and one element symbol
+RE_COORD = re.compile("([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([a-z]{1,2})")
 def get_coord3(root, dat='coord'):
     """Reads coord file and returns xyz coordinates in bohr"""
     with open(root+os.sep+dat) as file:
@@ -329,7 +299,7 @@ def get_coord3(root, dat='coord'):
         return xyzelem[:,:3].astype(float), xyzelem[:,3] #atomic units
         #return xyzelem[:,:3].astype(float)*BOHR2ANGSTROM, xyzelem[:,3]
 
-def mass_from_elements(elems):
+def mass_of_elements(elems):
     """Takes list of element strings and converts the most frequently abundant isotope to the corresponding mass
     Probably it would be faster to write a dictionary but this is more convenient for now
     """
