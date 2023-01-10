@@ -310,7 +310,10 @@ def center_of_mass(coords, mass):
     return np.average(coords, axis=0, weights=mass)
 
 def moment_of_inertia(coords,mass,i,j):
-    """Calculates Moment of inertia for x(i=1,j=2), y(i=0,j=2) or z(i=0,j=1) direction"""
+    """Calculates Moment of inertia for x(i=1,j=2), y(i=0,j=2) or z(i=0,j=1) direction
+    coords : np.array with dimension (N,3) contains xyz coordinates of each atom.
+    mass : np.array with dimension (N) containing molar mass of each atom.
+    """
     return np.sum(mass * (coords[:,i]*coords[:,i]+coords[:,j]*coords[:,j]))
 
 if __name__ == '__main__':
