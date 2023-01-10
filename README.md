@@ -1,69 +1,46 @@
-# qcdc 
-this directory is for data collection of turbomole calculations,
-a short discription of programs and how to use is given here.
-pandas is used for everything, it will help you a lot.
+# qcdc
+"Quantum Chemical Data Collection" is a python3 program 
+which walks through the directory tree and collects data from Turbomole files.
+Data is saved in dictionaries and written to .json format files.
+Pandas is recommended for post processing of the data, 
+while it also is possible to import .json files with Excel.
 
-freq.sh
-The shell script will call the main programs until everything is collected or updated
+The program is written for Linux based OS.
 
-folder_names.py
-Here directory names are saved for later which can be used for accessing the directories,
-directory names have to be changed in this file
-the declared variables are then written to main.dat, which contains the names, so bash scripts can access them easily.
-This directories are the main directories, 
-the script freq.sh will then go into these directories and read all directories located there 
-and write them to names_f, which are read by the mainprogram again.
+After downloading the file "qcdc.py" the program can be called via `python3 ~/Downloads/qcdc.py` in the terminal.  
 
-init_var.py
-declares the names of the columns of the dataframe,
-names can be changed in the file.
-
-freeh.err freeh_in
-output and input file of calculations of thermodynamic properties,
-in the directories a freeh.out file is generated, which is read by the program
-
-collect_data.py
-this is the main program for collection of data in different directories,
-it will write everything to one big "data.csv" sheet, which then can be observed by the programs in the directories.
-for observation it is most convinient to use pandas, and not excel.
-
-example directories with programs called data.py,
-a small .csv file for excel or .tex for LaTeX can be generated easily.
-numforce
-pbe0m06_struc789
-time
-damping
-fermi
-
-###
-Verbesserungen:
-main programme aus dem Modul entfernen
-uebrig bleiben nur functions und evtl ein beispiel fuer main.py/sh
+The directories should contain the default files like control, coord, energy, vibspectrum in correct format.  
+The program starts in the working directory and walks through *everything* below,
+however, Turbomole experience advices to **keep it flat**.
 
 
-###
-Neues Ziel ist:
-1. Funktion
-1x Bash Skript das alle directories mit tree in ein file schreibt und 
-Turbomole Funktionen verwendet und die Dirs aktualisiert.
-Terminal commands wie t2x -c > last-geo.xyz, freeh < """ """ sollten hier drin stehen,
-und bestenfalls mit optionen mitaufgerufen werden.
+I recommend to install miniconda for beginners:
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
-2. Funktion
-ist das collection.py skript. 
-Es ist im besten Fall auch unabhaengig verwendbar, 
-das sollte mit der Zeile [x[0] for x in os.walk(directory)]
-oder next(os.walk('.'))[1] machbar sein.
-Es parst alle files in den Directories des Directorylistings und schreibt die Daten in ein .csv-file.
+Have a look at the link below for installing packages:
+(https://packaging.python.org/en/latest/tutorials/installing-packages/)
 
-#IDEAS
-save coordinate-links in one column and coordinate files (t2energy) in one directory
-OR
-create one entry for each atom for
--x
--y
--z
--basis-set
--charge1
--charge2
-...
+The following libraries have to be installed:
+* pandas
+* os
+* numpy
+* re
+* molmass (https://pypi.org/project/molmass/)
+
+##### Best practice is hint:  
+`mkdir ~/bin`  
+`mv ~/Downloads/qcdc.py ~/bin/.`  
+`chmod 744 ~/bin/qcdc.py`  
+You should now be able to call the program by typing `qcdc.py` from every location.
+
+### Recently:
+Uploaded on Github :man_with_gua_pi_mao:
+
+### Problems
+Absent files are no problem but files with non-default format may lead to problems.
+If you need certain data, it should be easy to expand the program.
+Please let me know if you do so.
+Feel free to contact me.
+
+### Please, tell me what you think! :email:
+https://www.bcp.fu-berlin.de/en/chemie/chemie/forschung/PhysTheoChem/agpaulus/group-members/phd-students/luca-steiner.html
