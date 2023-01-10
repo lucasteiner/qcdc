@@ -8,11 +8,11 @@ After downloading the file "qcdc.py" the program is called via
 `python3 ~/Downloads/qcdc.py`
 
 The following libraries have to be imported first:
-* molmass
 * pandas
 * os
 * numpy
 * re
+* molmass (https://pypi.org/project/molmass/)
 
 Have a look at the link below for installing packages:
 (https://packaging.python.org/en/latest/tutorials/installing-packages/)
