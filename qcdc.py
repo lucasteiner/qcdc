@@ -93,7 +93,7 @@ def main (infile='tree.dat'):
         #do this for transition states, frequencies start to count from 1!
             if ser['vibspectrum'][1] < 0.:
                 ser['thermal corrections (sign inverted)'] = calculate_gibbs(positive_freqs, momi, ser[M_MASS])
-                ts_freq = positive_freqs
+                ts_freqs = positive_freqs
                 ts_freqs[0] = -ts_freqs[0]
                 ser['thermal corrections (sign inverted) for TS'] = calculate_gibbs(ts_freqs, momi, ser[M_MASS])
             else:
