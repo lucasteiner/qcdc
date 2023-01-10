@@ -28,9 +28,9 @@ The following libraries have to be installed:
 * molmass (https://pypi.org/project/molmass/)
 
 ##### Best practice is hint:  
-`mkdir ~/bin`
-`mv ~/Downloads/qcdc.py ~/bin/.`
-`chmod 744 ~/bin/qcdc.py`
+`mkdir ~/bin`  
+`mv ~/Downloads/qcdc.py ~/bin/.`  
+`chmod 744 ~/bin/qcdc.py`  
 You should now be able to call the program by typing `qcdc.py` from every location.
 
 ### Recently:
