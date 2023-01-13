@@ -43,74 +43,81 @@ def main (infile='tree.dat'):
     df = []
 
     for root, dirs, files in os.walk(os.path.curdir):
+        try:
 
-        #ser reflects one series, although we use dict to be faster
-        ser = dict()
+            #ser reflects one series, although we use dict to be faster
+            ser = dict()
 
-        #This is sometimes useful for data evaluation purposes
-        ser['Folder'] = root.split(os.sep)[-1] #name of folder only
-        ser['Group'] = root.strip(str(ser['Folder'])) #name of root without folder
-        ser['Root'] = root
+            #This is sometimes useful for data evaluation purposes
+            ser['Folder'] = root.split(os.sep)[-1] #name of folder only
+            ser['Group'] = root.strip(str(ser['Folder'])) #name of root without folder
+            ser['Root'] = root
 
-        #TURBOMOLE functions
-        #the function changes ser by saving information from 'control'
-        get_control2(ser, root, files)
+            #TURBOMOLE functions
+            #the function changes ser by saving information from 'control'
+            get_control2(ser, root, files)
 
-        #gets last saved [0]: total energy [1]:kinetic energy, [2]:potential energy
-        if 'energy' in files:
-            ser['SPE'] = get_energy2(root)[0]*EH2KJMOL 
-            #print(ser['SPE'])
+            #gets last saved [0]: total energy [1]:kinetic energy, [2]:potential energy
+            filename = 'energy'
+            if filename in files:
+                ser['SPE'] = get_energy2(root)[0]*EH2KJMOL 
+            
 
-        #read coordinate information and calculate moments of inertia
-        if 'coord' in files: #we assume turbomole format
-            #get coords in angstrom and elementsymbols
-            xyz, elem = get_coord3(root) #bohr
-
-            #We need mass information of the elements
-            elem_masses = mass_of_elements(elem) #g/mol
-            ser[M_MASS] = np.sum(elem_masses)
-
-            #When we calculate moments of inertia, we need centralized coordinates
-            xyz_central = xyz - center_of_mass(xyz, elem_masses)
-            ser[MOMI] = {
-                    'xx': moment_of_inertia(xyz_central, elem_masses, 1, 2),
-                    'yy': moment_of_inertia(xyz_central, elem_masses, 0, 2),
-                    'zz': moment_of_inertia(xyz_central, elem_masses, 0, 1)
-                    }
-            momi = [ser[MOMI]['xx'],ser[MOMI]['yy'],ser[MOMI]['zz']]
-            #print(momi)
-            #get_coord (ser, root, dat='last-geo.xyz') 
-            #print(ser[inerta], ser[inertb], ser[inertc])
-
-        #gets frequencies from vibspectrum and calculates RRHO thermal corrections and quasi-RRHO Gibbs free energy
-        if 'vibspectrum' in files:
-            tmp = get_vibspectrum (root)
-            ser['vibspectrum'] = dict(tmp)
-            freqs = np.asarray(tmp)[:,1]
-            #print(freqs)
-            ser['thermal corrections'] = calculate_gibbs(freqs, momi, ser[M_MASS])
-            positive_freqs = np.abs(freqs)
-        #do this for transition states, frequencies start to count from 1!
-            if ser['vibspectrum'][1] < 0.:
-                ser['thermal corrections (sign inverted)'] = calculate_gibbs(positive_freqs, momi, ser[M_MASS])
-                ts_freqs = positive_freqs
-                ts_freqs[0] = -ts_freqs[0]
-                ser['thermal corrections (sign inverted) for TS'] = calculate_gibbs(ts_freqs, momi, ser[M_MASS])
-            else:
-                #In case, all frequencies are positive, we just use copy the old results, such that it is easier to use later.
-                #However, this is not a deep copy. A deep copy should not be necessary.
-                ser['thermal corrections (sign inverted)'] = ser['thermal corrections'].copy() 
-
-
-        #gets information on HOMO and LUMO (energy and orbital number)
-        if 'eiger.out' in files:
-            get_eiger (ser, root) 
-
-        #gets cosmors values, filename has to be out.tab
-        if 'out.tab' in files:
-            get_cosmors(ser, root, dat='out.tab')
-
-        df.append(ser)
+            #read coordinate information and calculate moments of inertia
+            filename = 'coord'
+            if filename in files: #we assume turbomole format
+                #get coords in angstrom and elementsymbols
+                xyz, elem = get_coord3(root) #bohr
+    
+                #We need mass information of the elements
+                elem_masses = mass_of_elements(elem) #g/mol
+                ser[M_MASS] = np.sum(elem_masses)
+    
+                #When we calculate moments of inertia, we need centralized coordinates
+                xyz_central = xyz - center_of_mass(xyz, elem_masses)
+                ser[MOMI] = {
+                        'xx': moment_of_inertia(xyz_central, elem_masses, 1, 2),
+                        'yy': moment_of_inertia(xyz_central, elem_masses, 0, 2),
+                        'zz': moment_of_inertia(xyz_central, elem_masses, 0, 1)
+                        }
+                momi = [ser[MOMI]['xx'],ser[MOMI]['yy'],ser[MOMI]['zz']]
+                #print(momi)
+                #get_coord (ser, root, dat='last-geo.xyz') 
+                #print(ser[inerta], ser[inertb], ser[inertc])
+    
+            #gets frequencies from vibspectrum and calculates RRHO thermal corrections and quasi-RRHO Gibbs free energy
+            filename = 'vibspectrum'
+            if filename in files:
+                tmp = get_vibspectrum (root)
+                ser['Vibspectrum'] = dict(tmp)
+                freqs = np.asarray(tmp)[:,1]
+                #print(freqs)
+                ser['ThermalCorrections'] = calculate_gibbs(freqs, momi, ser[M_MASS])
+                positive_freqs = np.abs(freqs)
+            #do this for transition states, frequencies start to count from 1!
+                if ser['Vibspectrum'][1] < 0.:
+                    ser['ThermalCorrections (sign inverted)'] = calculate_gibbs(positive_freqs, momi, ser[M_MASS])
+                    ts_freqs = positive_freqs
+                    ts_freqs[0] = -ts_freqs[0]
+                    ser['ThermalCorrections (sign inverted) for TS'] = calculate_gibbs(ts_freqs, momi, ser[M_MASS])
+                else:
+                    #In case, all frequencies are positive, we just use copy the old results, such that it is easier to use later.
+                    #However, this is not a deep copy. A deep copy should not be necessary.
+                    ser['ThermalCorrections (sign inverted)'] = ser['ThermalCorrections'].copy() 
+    
+    
+            #gets information on HOMO and LUMO (energy and orbital number)
+            filename = 'eiger.out'
+            if filename in files:
+                get_eiger (ser, root) 
+    
+            #gets cosmors values, filename has to be out.tab
+            filename = 'out.tab'
+            if filename in files:
+                get_cosmors(ser, root, dat='out.tab')
+            df.append(ser)
+        except IndexError as e:
+            print(f"{e}! look at {root}/{filename}. Please rename or delete the file, directory is skipped")
     df = pd.DataFrame(df)
     #df.to_csv('data.csv',index=False)
     df.to_json('data.json')
@@ -283,11 +290,13 @@ def get_energy(ser, root, dat='energy'):
         ser['SPE kjmol'] = ser['Single Point Energy']*EH2KJMOL
 
 #Regex searches for an integer and 3 floats
-RE_ENERGY = re.compile("^[0-9 ]{6}\s([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)")#last one is element symbol
+RE_ENERGY = re.compile("^[0-9 ]{6}\s+([-+]?\d*\.\d+)\s+([-+]?\d*\.\d+)\s+([-+]?\d*\.\d+)")#last one is element symbol
 def get_energy2(root, dat='energy'):
     """returns vector with element[0]: total energy [1]:kinetic energy, [2]:potential energy"""
     with open(root+os.sep+dat) as file:
-        return np.array(re.findall(RE_ENERGY,file.readlines()[-2])[0]).astype(float) #one D too many...
+        print(file.readlines()[-2])
+    with open(root+os.sep+dat) as file:
+        return np.array(re.findall(RE_ENERGY, file.readlines()[-2])[0]).astype(float) #one D too many...
 
 #Regex searches for 3 floats and one element symbol
 RE_COORD = re.compile("([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([-+]?\d*\.\d+)[ ]+([a-z]{1,2})")
