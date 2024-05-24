@@ -328,3 +328,25 @@ def is_molecule_linear(coordinates):
         if not np.allclose(cross_product, 0):
             return False
 
+def extract_conf_number(input_string):
+    """
+    Extracts the number next to '/CONF' in the input string.
+
+    Parameters:
+    input_string (str): The input string to search for the pattern.
+
+    Returns:
+    int or None: The extracted number if found, otherwise None.
+    """
+    # Define the regular expression pattern to match '/CONF' followed by digits
+    pattern = r'/CONF(\d+)'
+    
+    # Search for the pattern in the input string
+    match = re.search(pattern, input_string)
+    
+    # If a match is found, extract the number and return it
+    if match:
+        return int(match.group(1))
+    
+    # If no match is found, return None
+    return None

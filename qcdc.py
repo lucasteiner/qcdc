@@ -70,6 +70,8 @@ def main():
                 except KeyError as e:
                     print(f"{e} in write_xyz. Some data not found")
                     pass
+                # Extract the number in the /CONF string which is used in censo calculations.
+                calculation['Censo Conformer Number'] = common_functions.extract_conf_number(calculation.get('Root'))
 
             # Append the cleaned and calculated data of the folder
             df.extend(combined)

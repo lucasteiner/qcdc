@@ -21,12 +21,13 @@ data = data.set_index('RootFile')
 
 # Define column names for easier access
 dg = 'Chemical Potential for Liquids'
+ccn = 'Censo Conformer Number'
 spe = 'Single Point Energy'
 xyz = 'xyz Coordinates'
 xyz_name = 'xyz File Name'
 
 # Test accessing data
-fphthal_svp = data[spe]['./qcdc_test_data/f2omef/censo/CONF1/pbe0-d4/control']
+fphthal_spe = data[spe]['./qcdc_test_data/f2omef/censo/CONF1/pbe0-d4/control']
 #print(fphthal_svp)
 
 fphthal_xyz = data[xyz]['./qcdc_test_data/f2omef/censo/CONF1/pbe0-d4/control']
@@ -34,7 +35,7 @@ fphthal_xyz = data[xyz]['./qcdc_test_data/f2omef/censo/CONF1/pbe0-d4/control']
 
 # Set index to data of one conformer
 fphthal_index = data.index[data.index.str.contains('./qcdc_test_data/f2omef/censo/')]
-fphthal_index = fphthal_index[fphthal_index.str.contains('/part0_sp/control')]
+fphthal_index = fphthal_index[fphthal_index.str.contains('/pbe0-d4/control')]
 fphthal = data.loc[fphthal_index]
 lst = []
 for index in fphthal_index:
@@ -83,4 +84,28 @@ ax.set_ylabel('PCA Component 2')
 ax.set_zlabel('PCA Component 3')
 
 plt.legend()
-plt.show()
+#plt.show()
+
+lst = []
+for index in fphthal_index:
+    lst.append(fphthal[spe][index])
+energies = np.asarray(lst)
+energies = energies - energies.min()
+#print(spe)
+shape = energies.shape
+
+# Print or analyze the mapping of data points to clusters
+#for i, (name, energy, cluster) in enumerate(zip(data[ccn][fphthal_index], energies, labels)):
+#    print(f"Data point {i}: {name}, {energy} -> Cluster {cluster}")
+
+# Create a list of tuples containing the name, energy, and cluster
+data_tuples = list(zip(fphthal[ccn], energies, labels))
+
+# Sort the list of tuples based on the energy values (second item in each tuple)
+sorted_data = sorted(data_tuples, key=lambda x: x[1])
+
+# Print the sorted data
+for i, (name, energy, cluster) in enumerate(sorted_data):
+    print(f"Data point {i}: {name}, {energy} -> Cluster {cluster}")
+#print(fphthal_index)
+print(fphthal_index)
