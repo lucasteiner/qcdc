@@ -1,0 +1,18 @@
+TEMPERATURE : 298.15 #K
+PRESSURE : 100000   #Pa
+QRRHO_CUTOFF : 100 #cm-1
+MOLES : 1.0 #mol
+#physical constants
+M_MASS : 'molecular mass [g/mol]'
+EH2KJMOL : 2625.499639
+BOHR2METER : 0.52917721092e-10
+BOHR2ANGSTROM : 0.52917721092
+ANGSTROM2BOHR : 1.8897259886
+XYZDIR : 'xyz'
+SIGMA : 1
+AMU : 1.6605390666e-27
+WAVENUMBERS2KJMOL : 0.011962656563869701
+CONSTANTX : 0.0021988389213882936 # *pi**0.5 * ((8*pi*pi*k/h/h)**3 *(mc.AMU**3*mc.BOHR2METER**6))**0.5
+SIGN_INV_THR : 100 # cm-1, threshold for sign inversion of imaginary frequencies
+#we did not yet implement anything with symmetry. 
+#linear molecules and atoms could be problematic, 

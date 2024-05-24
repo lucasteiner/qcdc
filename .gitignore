@@ -1,3 +1,15 @@
+<<<<<<<<< Temporary merge branch 1
+=========
+# My Folders and files
+xyz/
+qcdc_test_data
+.vscode
+*.json
+*~
+test.py
+test_tm.py
+# Template
+>>>>>>> master
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
