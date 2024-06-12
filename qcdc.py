@@ -26,12 +26,14 @@ def main():
         # Parse ORCA calculations
         combined = []
         if args.orca:
+            print(root)
             orca_calculations = parse_orca(root, dirs, files)
             if orca_calculations:
                 combined.extend(orca_calculations)
 
         # Parse TURBOMOLE calculations
         if args.turbomole:
+            print(root)
             ser = parse_turbomole(root, dirs, files)
             if ser:
                 combined.append(ser)

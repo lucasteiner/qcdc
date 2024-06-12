@@ -6,15 +6,8 @@ def parse_orca(root, dirs, files):
     """
     function parses orca files and returns content as dict
     """
-    valid_orca_filenames = filter_orca_filenames(files)
-    #orca_filenames = [filename for filename in valid_filenames if is_orca_output_file(root+'/'+filename)]
+    orca_filenames = filter_orca_filenames(files, root)
     calculations = []
-    orca_filenames = []
-    for filename in valid_orca_filenames:
-        #print(root+'/'+filename)
-        if is_orca_output(root+'/'+filename):
-            #print(root+'/'+filename)
-            orca_filenames.append(filename)
     #print(orca_filenames)
     for filename in orca_filenames:
 
@@ -27,9 +20,7 @@ def parse_orca(root, dirs, files):
 
         #extract orca input from output
         _, input_file = extract_orca_input(ser ['RootFile'])
-        # print(ser['RootFile'])
-        # print(input_file)
-        parse_orca_input (ser, input_file)
+        parse_orca_input (ser, input_file, files)
         
 
 
@@ -71,7 +62,7 @@ def parse_orca(root, dirs, files):
 
     
 
-def filter_orca_filenames(filenames):
+def filter_orca_filenames(filenames, root):
     """
     Filters a list of filenames based on specific criteria and returns valid filenames.
 
@@ -101,9 +92,13 @@ def filter_orca_filenames(filenames):
             # If criteria are met, add the filename to the list of valid filenames
             valid_filenames.append(filename)
 
+    orca_filenames = []
+    for filename in valid_filenames:
+        if is_orca_output(root+'/'+filename):
+            orca_filenames.append(filename)
 
     # Return the list of valid filenames
-    return valid_filenames
+    return orca_filenames
 
 
 def parse_file(file_path, data={}):
@@ -283,7 +278,7 @@ def extract_orca_input(file_path):
     # cut off "|  ?> " and convert to lower case
     return name_of_input, [line[5:].lower() for line in lines[input_start:input_end]]
 
-def parse_orca_input(ser, input_file):
+def parse_orca_input(ser, input_file, files):
     """Look for keyword in input and return bool whether found or not"""
     ser['Geometry Optimization'] = False
     ser['Frequency Calculation'] = False
@@ -310,7 +305,7 @@ def parse_orca_input(ser, input_file):
         if cut_line.startswith('*') and not xyz_input_coordinates_contained_in_output_file:
             xyz_input_coordinates_contained_in_output_file = cut_line.startswith('*xyz ')
         if cut_line.startswith('*xyzfile ') and not xyz_input_coordinates_file_name:
-            xyz_input_coordinates_file_name = ser['Root'] + '/' + cut_line[1:].lstrip().split()[3]
+            xyz_input_coordinates_file_name = cut_line[1:].lstrip().split()[3]
         if cut_line.startswith('*') and not internal_input_coordinates_contained_in_output_file:
             internal_input_coordinates_contained_in_output_file = cut_line.startswith('*int ')
         if cut_line.startswith('*') and not ser['Charge'] and not ser['Multiplicity']:
@@ -319,20 +314,29 @@ def parse_orca_input(ser, input_file):
             ser['Multiplicity'] = tmp[2]
         if cut_line.startswith('%geom scan'):
             ser['Potential Energy Surface Scan'] = False
-        if cut_line.startswith('*') and not end_of_coordinate_section and start_of_coordinate_section:
+        if (cut_line.startswith('end') or cut_line.startswith('*')) and not end_of_coordinate_section and start_of_coordinate_section:
             end_of_coordinate_section = i
         elif cut_line.startswith('*') and not start_of_coordinate_section:
             start_of_coordinate_section = i + 1
 
     if xyz_input_coordinates_contained_in_output_file:
         #print('indexes:', start_of_coordinate_section, end_of_coordinate_section)
-        #print('RootFile: ', ser['RootFile'])
+        # print('RootFile: ', ser['RootFile'])
         #print(start_of_coordinate_section, end_of_coordinate_section)
-        #print(input_file[start_of_coordinate_section: end_of_coordinate_section])
+        # print(input_file)
+        # print(input_file[start_of_coordinate_section: end_of_coordinate_section])
         ser['Elements'], ser['xyz Coordinates'], ser['Number of Atoms'] = parse_orca_input_coordinates(input_file[start_of_coordinate_section: end_of_coordinate_section])
+    elif xyz_input_coordinates_file_name:
+        # Case insensitive reading, case sensitive filename
+        ser['Number of Atoms'], _, ser['Elements'], ser['xyz Coordinates'] = common_functions.read_xyz(
+                ser['Root'] + '/' + next((filename for filename in files if filename.lower() == xyz_input_coordinates_file_name), None)
+                )
+    elif internal_input_coordinates_contained_in_output_file:
+        print('Internal Coordinates are not yet handeled')
+        return
+    else:
+        raise ValueError
 
-    if xyz_input_coordinates_file_name:
-        ser['Number of Atoms'], _, ser['Elements'], ser['xyz Coordinates'] = common_functions.read_xyz(xyz_input_coordinates_file_name)
 
     if not ser['Elements']:
         raise ValueError
@@ -358,8 +362,9 @@ def parse_orca_input_coordinates(lines):
     elements = []
     coordinates = []
 
+    #print(lines)
     for line in lines:
-        #print(line)
+        # print(line)
         parts = line.split()
         if len(parts) == 4:  # Ensure the line has exactly 4 parts (element and 3 coordinates)
             elements.append(parts[0])
