@@ -25,22 +25,24 @@ xyz = 'xyz Coordinates'
 xyz_name = 'xyz File Name'
 
 # Test accessing data
-fphthal_svp = data[spe]['./qcdc_test_data/f2omef/censo/CONF1/pbe0-d4/control']
+#fphthal_svp = data[spe]['./censo_benzene/censo/CONF1/pbe0-d4/control']
 #print(fphthal_svp)
 
-fphthal_xyz = data[xyz]['./qcdc_test_data/f2omef/censo/CONF1/pbe0-d4/control']
+#fphthal_xyz = data[xyz]['./censo_benzene/censo/CONF1/pbe0-d4/control']
 #print(fphthal_xyz)
 
 # Set index to data of one conformer
-fphthal_index = data.index[data.index.str.contains('./qcdc_test_data/f2omef/censo/')]
-fphthal_index = fphthal_index[fphthal_index.str.contains('/part0_sp/control')]
+fphthal_index = data.index[data.index.str.contains('./censo-benzene/')]
+fphthal_index = fphthal_index[fphthal_index.str.contains('/control')]
 fphthal = data.loc[fphthal_index]
+print(fphthal)
 lst = []
 for index in fphthal_index:
     lst.append(fphthal[xyz][index])
 arr = np.asarray(lst)
 print(arr)
 shape = arr.shape
+print(shape)
 pca_input = arr.reshape(shape[0], shape[1]*shape[2])
 pca_input.shape
 
