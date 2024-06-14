@@ -7,6 +7,7 @@ import my_constants as mc
 from parse_args import get_arguments
 from parse_orca_calculation import parse_orca
 from parse_turbomole_calculation import parse_turbomole
+from parse_censo_calculation import parse_censo
 
 
 def main():
@@ -20,23 +21,29 @@ def main():
     for root, dirs, files in os.walk(os.path.curdir):
 
         # Exclude specific folders
-        if root.startswith('./xyz') or root.startswith('./__pycache__') or root.startswith('./.venv'):
+        if root.startswith('./xyz') or root.startswith('./__pycache__') or root.startswith('./.venv') or root.startswith('./.git'):
             continue
 
         # Parse ORCA calculations
         combined = []
+        print('Root: ', root)
         if args.orca:
-            print(root)
             orca_calculations = parse_orca(root, dirs, files)
             if orca_calculations:
                 combined.extend(orca_calculations)
 
         # Parse TURBOMOLE calculations
         if args.turbomole:
-            print(root)
             ser = parse_turbomole(root, dirs, files)
             if ser:
                 combined.append(ser)
+
+        # Parse CENSO calculations
+        if args.censo:
+            ser = parse_censo(root, dirs, files)
+            if ser:
+                combined.append(ser)
+
 
         # Post-processing for all calculations of a folder
         if combined:
