@@ -63,9 +63,16 @@ def parse_turbomole(root, dirs, files):
     if filename in files:
         get_eiger(ser, root)
 
-    filename = 'out.tab'
-    if filename in files:
-        get_cosmors(ser, root, dat='out.tab')
+    # parses for the calculation named 'out'
+    filenames = ['out.tab', 'cosmotherm.tab']
+    [get_cosmors(ser,root,filename) for filename in filenames if filename in files]
+    #for filename in filenames:
+    #    if filename in files:
+    #        get_cosmors(ser, root, filename)
+
+    #filename = 'out.tab'
+    #if filename in files:
+    #    get_cosmors(ser, root, filename)
     
     return ser
 

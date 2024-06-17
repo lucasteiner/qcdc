@@ -22,6 +22,7 @@ def get_arguments():
     parser.add_argument('--orca', type=on_off_type, default=True, help="Control ORCA (default: on).")
     parser.add_argument('--turbomole', type=on_off_type, default=True, help="Control TURBOMOLE (default: on).")
     parser.add_argument('--censo', type=on_off_type, default=True, help="Control CENSO (default: on).")
+    parser.add_argument('--savexyz', type=on_off_type, default=False, help="Save xyz data in dataframe in addition to folders (default: off).")
 
     # Parse and return the arguments
     return parser.parse_args()
@@ -32,3 +33,4 @@ if __name__ == '__main__':
     print(f"Orca: {args.orca}")
     print(f"Turbomole: {args.turbomole}")
     print(f"Censo: {args.censo}")
+    print(f"saveXYZ: {args.savexyz}")

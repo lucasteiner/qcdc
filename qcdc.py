@@ -66,7 +66,7 @@ def main():
                         charge=calculation.get('Charge'),
                         s2=calculation.get('S2'),
                         dipole=calculation.get('Dipole Moment'),
-                        vibration=calculation.get('frequencies'),
+                        vibration=calculation.get('Frequencies'),
                         zpe=calculation.get('Zero Point Energy')
                     )
                     common_functions.write_xyz(
@@ -85,13 +85,20 @@ def main():
             # Append the cleaned and calculated data of the folder
             df.extend(combined)
 
-    return pd.DataFrame(df)
+    # Final part
+    df = pd.DataFrame(df)
+    if not args.savexyz:
+        df.drop('xyz Coordinates', axis=1)
+        df.drop('Frequencies', axis=1)
+        df.drop('Elements', axis=1)
+    df.to_json('data.json')
+
+    return df
 
 
 if __name__ == '__main__':
     args = get_arguments()
     df = main()
-    df.to_json('data.json')
     print(df)
     print(df.keys())
     print(df.info())
