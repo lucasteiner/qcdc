@@ -20,18 +20,22 @@ def parse_censo(root, dirs, files):
 
         #do default parsing operations
         ser['censo conformers'], best_values = parse_censo_file (ser['RootFile'])
-        for (key, value) in zip (censo_columns, best_values):
-            ser[key] = value
+        if bool(best_values):
+            for (key, value) in zip (censo_columns, best_values):
+                ser[key] = value
         #parse_censo_file (ser['RootFile'], ser)
 
     return ser
 
 
 # Columns for the table
-censo_columns = ["CONF#", "E(GFNn-xTB)", "ΔE(GFNn-xTB)", "E [Eh]", "Gsolv [Eh]", "GmRRHO [Eh]", "Gtot", "ΔGtot", "Boltzmannweight"]
+censo_columns = ["CONF#", "E(GFNn-xTB)", "dE(GFNn-xTB)", "E [Eh]", "Gsolv [Eh]", "GmRRHO [Eh]", "Gtot", "dGtot", "Boltzmannweight"]
 
 # Pattern to match the table header
-header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+ΔE\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+ΔGtot\s+Boltzmannweight")
+#header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+ΔE\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+ΔGtot\s+Boltzmannweight")
+header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+..E\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+..Gtot\s+Boltzmannweight")
+#header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+�~TE\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+�~TGtot\s+Boltzmannweight")
+
 
 # This only works if headers match censo headers (mRRHO has to be switched on)
 # And only for part 2 and part 3?
@@ -41,25 +45,26 @@ def parse_censo_file(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
-        for i, line in enumerate(lines):
-            data = []
-            lowest_conformer = []
-            if header_pattern.search(line):
-                # Skip the header and the two following metadata lines
-                for j in range(i + 3, len(lines)):
-                    if lines[j].strip() == "":  # Stop if we reach an empty line
-                        all_data.append(data)
-                        all_lowest_conformers.append(lowest_conformer)
-                        break
-                    row = re.split(r'\s+', lines[j].strip())
-                    if len(row) == len(censo_columns):
-                        data.append(row)
-                    elif len(row) == len(censo_columns) + 1:
-                        lowest_conformer = row[:-1]
-                        data.append(lowest_conformer)
+    if lines[-1] != 'CENSO all done!\n':
+        return (None, None)
 
-    #print(data)
-    #print(lowest_conformer)
+    for i, line in enumerate(lines):
+        data = []
+        lowest_conformer = []
+        if header_pattern.search(line):
+            # Skip the header and the two following metadata lines
+            for j in range(i + 3, len(lines)):
+                if lines[j].strip() == "":  # Stop if we reach an empty line
+                    all_data.append(data)
+                    all_lowest_conformers.append(lowest_conformer)
+                    break
+                row = re.split(r'\s+', lines[j].strip())
+                if len(row) == len(censo_columns):
+                    data.append(row)
+                elif len(row) == len(censo_columns) + 1:
+                    lowest_conformer = row[:-1]
+                    data.append(lowest_conformer)
+
     return all_data[-1], all_lowest_conformers[-1]
 
 

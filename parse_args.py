@@ -23,6 +23,7 @@ def get_arguments():
     parser.add_argument('--turbomole', type=on_off_type, default=True, help="Control TURBOMOLE (default: on).")
     parser.add_argument('--censo', type=on_off_type, default=True, help="Control CENSO (default: on).")
     parser.add_argument('--savexyz', type=on_off_type, default=False, help="Save xyz data in dataframe in addition to folders (default: off).")
+    parser.add_argument('--ignore_folders', type=str, default='ignore_folders', help="File with Foldernames to be ignored. (default: ignore_folders, set by 'ls -d ./*/ > ignore_folders')")
 
     # Parse and return the arguments
     return parser.parse_args()

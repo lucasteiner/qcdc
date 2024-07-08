@@ -15,6 +15,7 @@ def parse_turbomole(root, dirs, files):
     filename = 'control'
     filename2 = 'ohess.out'
     filename3 = 'xtb.out'
+    filename4 = 'cosmotherm.out'
     if filename in files:
         common_functions.set_paths(ser, root, filename)
         get_control2(ser, root, filename)
@@ -22,10 +23,12 @@ def parse_turbomole(root, dirs, files):
     elif filename2 in files:
         ser['Type of Calculation'] = 'xtb'
         common_functions.set_paths(ser, root, filename2)
-        print(ser['RootFile'])
     elif filename3 in files:
         ser['Type of Calculation'] = 'xtb'
         common_functions.set_paths(ser, root, filename3)
+    elif filename4 in files:
+        ser['Type of Calculation'] = 'cosmors (only)'
+        common_functions.set_paths(ser, root, filename4)
     else:
         return
 
@@ -35,10 +38,11 @@ def parse_turbomole(root, dirs, files):
 
     filename = 'coord'
     if filename in files:
-        xyz, elem = common_functions.get_coord3(root)
-        ser['xyz Coordinates'] = xyz * mc.BOHR2ANGSTROM
-        ser['Elements'] = elem
-        ser['xyz File Name'] = f'./xyz/{(root[2:] + f"/{filename}").replace("/", "_")}.xyz'
+        (xyz, elem) = common_functions.get_coord3(root)
+        if xyz is not None:
+            ser['xyz Coordinates'] = xyz * mc.BOHR2ANGSTROM
+            ser['Elements'] = elem
+            ser['xyz File Name'] = f'./xyz/{(root[2:] + f"/{filename}").replace("/", "_")}.xyz'
 
     filename = 'xtbopt.xyz'
     if filename in files:
@@ -48,10 +52,11 @@ def parse_turbomole(root, dirs, files):
 
     filename = 'xtbopt.coord'
     if filename in files and ser['Type of Calculation'] == 'xtb':
-        xyz, elem = common_functions.get_coord3(root, filename)
-        ser['xyz Coordinates'] = xyz * mc.BOHR2ANGSTROM
-        ser['Elements'] = elem
-        ser['xyz File Name'] = f'./xyz/{(root[2:] + f"/{filename}").replace("/", "_")}.xyz'
+        (xyz, elem) = common_functions.get_coord3(root, filename)
+        if xyz is not None:
+            ser['xyz Coordinates'] = xyz * mc.BOHR2ANGSTROM
+            ser['Elements'] = elem
+            ser['xyz File Name'] = f'./xyz/{(root[2:] + f"/{filename}").replace("/", "_")}.xyz'
 
     filename = 'vibspectrum'
     if filename in files:
