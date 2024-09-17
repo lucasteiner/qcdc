@@ -4,6 +4,8 @@ import numpy as np
 import re
 from molmass import Formula
 from scipy.constants import h, k, c, N_A, R, pi, milli
+from pymatgen.core.structure import Molecule
+from pymatgen.symmetry.analyzer import PointGroupAnalyzer
 
 #this file contains functions which are used by both, 
 #the turbomole parser and orca parser
@@ -246,6 +248,10 @@ def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERA
     ser['Translational Partition Function'] = translational_partition_function(ser[mc.M_MASS])
     ser['Translational Partition Function for Liquids'] = translational_partition_function(ser[mc.M_MASS], volume=1e-3)
 
+    ser['Point Group'], ser['Symmetry Number'] = determine_point_group_and_symmetry_number(elements, coordinates)
+    if ser['Symmetry Number'] is None:
+        raise KeyError(f"No symmetry number assigned for Point Group {ser['Point Group']}, please add it to symmetry_number_lookup")
+
     if len(coordinates) == 1:
         ser['Single Atom'] = True
         return
@@ -271,7 +277,7 @@ def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERA
     # Calculate Partition Functions
     ser['Translational Partition Function'] = translational_partition_function(ser[mc.M_MASS])
     ser['Translational Partition Function for Liquids'] = translational_partition_function(ser[mc.M_MASS], volume=1e-3)
-    ser['Rotational Partition Function'] = rotational_partition_function(momi)
+    ser['Rotational Partition Function'] = rotational_partition_function(momi, sigma=ser['Symmetry Number'])
 
     ser['Vibrational Partition Function'] = vibrational_partition_function(positive_frequencies)
     ser['Zero Point Energy'] = zero_point_energy(positive_frequencies)
@@ -286,7 +292,7 @@ def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERA
     ser['Chemical Potential'] -= ser['qRRHO']
     ser['Chemical Potential for Liquids'] -= ser['qRRHO']
 
-    # Calculate Partition Functions with sign inversion for imaginary frequencies smaller than 100 in magnitude.
+    # Calculate Partition Functions with sign inversion for imaginary frequencies smaller than 100 in magnitude. Change value in config file.
     sign_inverted_frequencies = frequencies[np.abs(frequencies) > 0]
     sign_inverted_frequencies[sign_inverted_frequencies <= mc.SIGN_INV_THR] = None
     sign_inverted_frequencies[sign_inverted_frequencies > mc.SIGN_INV_THR] = np.abs(sign_inverted_frequencies[sign_inverted_frequencies > mc.SIGN_INV_THR])
@@ -354,3 +360,75 @@ def extract_conf_number(input_string):
     
     # If no match is found, return None
     return None
+
+
+symmetry_number_lookup = {
+    "C1": 1,
+    "Cs": 1,
+    "Ci": 2,
+    "C2": 2,
+    "C2v": 2,
+    "C2h": 2,
+    "C3v": 3,
+    "C3h": 3,
+    "C4": 4,
+    "C4v": 4,
+    "C4h": 4,
+    "C6": 6,
+    "C6v": 6,
+    "C6h": 6,
+    "D2": 4,
+    "D2h": 4,
+    "D2d": 4,
+    "D3": 6,
+    "D3h": 6,
+    "D3d": 6,
+    "D4": 8,
+    "D4h": 8,
+    "D4d": 8,
+    "D6": 12,
+    "D6h": 12,
+    "D6d": 12,
+    "Td": 12,
+    "Oh": 24,
+    "I": 60,
+    "S4": 4,
+    "S6": 4,
+    "C*v": 1,  # Linear heteronuclear (C*v as replacement for C infinity v)
+    "D*h": 2,  # Linear homonuclear (D*h as replacement for D infinity h)
+}
+#https://chem.libretexts.org/Bookshelves/Inorganic_Chemistry/Chemical_Group_Theory_(Miller)/02%3A_Rotational_Symmetry/2.02%3A_Point_Groups
+
+def determine_point_group_and_symmetry_number(elements, coordinates):
+    """
+    Determines the point group and symmetry number (sigma) for calculating the rotational partition function,
+    including special cases for linear molecules and single atoms.
+
+    Args:
+        elements (list): A list of chemical element symbols (e.g., ['H', 'O', 'H']).
+        coordinates (list of lists): A 3xN list of coordinates for the corresponding elements (e.g., [[x1, y1, z1], [x2, y2, z2], ...]).
+
+    Returns:
+        tuple: A tuple containing the point group of the molecule and its symmetry number (sigma) for the rotational partition function.
+    """
+    # Check if it's a single atom
+    if len(elements) == 1:
+        return "Single Atom", 1  # Single atom, sigma = 1
+
+    capital_elements = [element.capitalize() for element in elements]
+    # Create the Molecule object using pymatgen
+    molecule = Molecule(capital_elements, coordinates)
+
+    # Perform point group analysis
+    analyzer = PointGroupAnalyzer(molecule)
+
+    # Get the point group
+    point_group = str(analyzer.get_pointgroup())
+
+    symmetry_number = symmetry_number_lookup.get(point_group, None)  # Default to None if not found
+
+    return point_group, symmetry_number
+    #return str(None), symmetry_number
+
+
+

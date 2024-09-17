@@ -145,7 +145,7 @@ def get_cosmors(ser, root, dat='out.tab'):
     with open(os.path.join(root, dat)) as file:
         for line in file:
             if 'out' in line:
-                ser['CosmoRS'] = float(line[80:])
+                ser['CosmoRS'] = float(line[80:])*mc.CAL2J
 
 
 def get_eiger(ser, root, dat='eiger.out'):

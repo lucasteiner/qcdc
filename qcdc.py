@@ -54,10 +54,9 @@ def main():
 
     my_walk = ignore_dirs_by_name(os.path.curdir, ignore_folders)
 
-    unwanted_substrings = ['CONF']
-
-    for substring in unwanted_substrings:
-        my_walk = ignore_dirs_containing(my_walk, substring)
+    #unwanted_substrings = ['CONF']
+    #for substring in unwanted_substrings:
+    #    my_walk = ignore_dirs_containing(my_walk, substring)
 
     #for root, dirs, files in os.walk(os.path.curdir, ignore_folders):
     for root, dirs, files in my_walk:
@@ -75,7 +74,7 @@ def main():
 
         # Parse ORCA calculations
         combined = []
-        print('Root: ', root)
+        #print('Root: ', root)
         if args.orca:
             orca_calculations = parse_orca(root, dirs, files)
             if orca_calculations:

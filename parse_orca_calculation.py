@@ -288,6 +288,7 @@ def parse_orca_input(ser, input_file, files):
     ser['Charge'] = False
     ser['Multiplicity'] = False
     ser['Potential Energy Surface Scan'] = False
+    ser['Transition State Search'] = False
     start_of_coordinate_section = False
     end_of_coordinate_section = False
     for i, line in enumerate(input_file):
@@ -302,6 +303,10 @@ def parse_orca_input(ser, input_file, files):
             ser['Geometry Optimization'] = "opt" in cut_line
         if cut_line.startswith('!') and not ser['Frequency Calculation']:
             ser['Frequency Calculation'] = "freq" in cut_line
+        #if cut_line.startswith('!'): and not ser['Transition State Search']:
+        #    ser['Transition State Search'] = "tsopt" in cut_line
+        #if cut_line.startswith('!'): and not ser['Transition State Search']:
+        #    ser['Transition State Search'] = "neb-ts" in cut_line
         if cut_line.startswith('*') and not xyz_input_coordinates_contained_in_output_file:
             xyz_input_coordinates_contained_in_output_file = cut_line.startswith('*xyz ')
         if cut_line.startswith('*xyzfile ') and not xyz_input_coordinates_file_name:
@@ -327,10 +332,14 @@ def parse_orca_input(ser, input_file, files):
         # print(input_file[start_of_coordinate_section: end_of_coordinate_section])
         ser['Elements'], ser['xyz Coordinates'], ser['Number of Atoms'] = parse_orca_input_coordinates(input_file[start_of_coordinate_section: end_of_coordinate_section])
     elif xyz_input_coordinates_file_name:
-        # Case insensitive reading, case sensitive filename
-        ser['Number of Atoms'], _, ser['Elements'], ser['xyz Coordinates'] = common_functions.read_xyz(
-                ser['Root'] + '/' + next((filename for filename in files if filename.lower() == xyz_input_coordinates_file_name), None)
-                )
+        try:
+            # Case insensitive reading, case sensitive filename
+            ser['Number of Atoms'], _, ser['Elements'], ser['xyz Coordinates'] = common_functions.read_xyz(
+                    ser['Root'] + '/' + next((filename for filename in files if filename.lower() == xyz_input_coordinates_file_name), None)
+                    )
+        except TypeError as e:
+            print(f"{e}: xyz file not found in {ser['Root']}")
+
     elif internal_input_coordinates_contained_in_output_file:
         print('Internal Coordinates are not yet handeled')
         return
@@ -338,10 +347,10 @@ def parse_orca_input(ser, input_file, files):
         raise ValueError
 
 
-    if not ser['Elements']:
-        raise ValueError
-    if not ser['xyz Coordinates']:
-        raise ValueError
+    #if not ser['Elements']:
+    #    raise ValueError
+    #if not ser['xyz Coordinates']:
+    #    raise ValueError
 
     return
 

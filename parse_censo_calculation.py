@@ -32,8 +32,8 @@ def parse_censo(root, dirs, files):
 censo_columns = ["CONF#", "E(GFNn-xTB)", "dE(GFNn-xTB)", "E [Eh]", "Gsolv [Eh]", "GmRRHO [Eh]", "Gtot", "dGtot", "Boltzmannweight"]
 
 # Pattern to match the table header
-#header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+ΔE\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+ΔGtot\s+Boltzmannweight")
-header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+..E\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+..Gtot\s+Boltzmannweight")
+header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+ΔE\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+ΔGtot\s+Boltzmannweight")
+#header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+..E\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+..Gtot\s+Boltzmannweight")
 #header_pattern = re.compile(r"CONF#\s+E\(GFNn-xTB\)\s+�~TE\(GFNn-xTB\)\s+E\s\[Eh\]\s+Gsolv\s\[Eh\]\s+GmRRHO\s\[Eh\]\s+Gtot\s+�~TGtot\s+Boltzmannweight")
 
 
