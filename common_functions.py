@@ -369,6 +369,7 @@ symmetry_number_lookup = {
     "C2": 2,
     "C2v": 2,
     "C2h": 2,
+    "C3": 3,
     "C3v": 3,
     "C3h": 3,
     "C4": 4,

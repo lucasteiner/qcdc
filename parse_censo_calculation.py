@@ -11,6 +11,7 @@ def parse_censo(root, dirs, files):
     """
     Parses Censo calculation files.
     """
+    #print(root)
     ser = {}
 
     filename = 'censo.out'
@@ -46,7 +47,7 @@ def parse_censo_file(file_path):
         lines = file.readlines()
 
     if lines[-1] != 'CENSO all done!\n':
-        return (None, None)
+        return None, None
 
     for i, line in enumerate(lines):
         data = []
@@ -65,7 +66,13 @@ def parse_censo_file(file_path):
                     lowest_conformer = row[:-1]
                     data.append(lowest_conformer)
 
-    return all_data[-1], all_lowest_conformers[-1]
+    try:
+        last=all_data[-1]
+        lowest=all_lowest_conformers[-1]
+        return last, lowest
+    except IndexError as e:
+        print(f'{e} in parse_censo_file, we might miss some column in the censo output: {file_path}')
+        return None, None
 
 
 # This is not really needed anymore,

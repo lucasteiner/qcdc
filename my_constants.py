@@ -1,20 +1,27 @@
 import yaml
+import os
 
-# Path to the uploaded YAML file
-yaml_file_path = 'config.yml'
+# Get the absolute path of the yaml file
+yaml_file_path = os.path.dirname(os.path.abspath(__file__)) + '/config.yml'
+current_file_path = 'config.yml'
+#print(current_file_path)
 
 # Function to import variables from YAML into a Python dictionary
 def import_yaml_variables(yaml_path):
-    try:
-        with open(yaml_path, 'r') as file:
-            data = yaml.safe_load(file)
-        return data
-    except Exception as e:
-        print(f"Error while reading the YAML file: {e}")
-        return {}
+    with open(yaml_path, 'r') as file:
+        data = yaml.safe_load(file)
+    return data
 
 # Retrieve the variables
-yaml_variables = import_yaml_variables(yaml_file_path)
+if os.path.exists(yaml_file_path):
+    yaml_variables = import_yaml_variables(yaml_file_path)
+elif os.path.exists(current_file_path):
+    yaml_variables = import_yaml_variables(current_file_path)
+else:
+    print(f"Error while reading the YAML file")
+    print(current_file_path)
+    raise FileNotFoundError
+
 
 # Import the variables into the current namespace
 for key, value in yaml_variables.items():
