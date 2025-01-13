@@ -74,7 +74,7 @@ def main():
 
         # Parse ORCA calculations
         combined = []
-        #print('Root: ', root)
+        print('Root: ', root)
         if args.orca:
             orca_calculations = parse_orca(root, dirs, files)
             if orca_calculations:

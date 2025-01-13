@@ -13,10 +13,14 @@ def import_yaml_variables(yaml_path):
     return data
 
 # Retrieve the variables
-if os.path.exists(yaml_file_path):
-    yaml_variables = import_yaml_variables(yaml_file_path)
-elif os.path.exists(current_file_path):
+if os.path.exists(current_file_path):
+    print('config exists here')
+    print(current_file_path)
     yaml_variables = import_yaml_variables(current_file_path)
+elif not os.path.exists(current_file_path):
+    print('config does not exist, using default')
+    print(yaml_file_path)
+    yaml_variables = import_yaml_variables(yaml_file_path)
 else:
     print(f"Error while reading the YAML file")
     print(current_file_path)

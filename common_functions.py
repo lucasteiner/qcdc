@@ -189,6 +189,7 @@ def translational_partition_function(mass, volume=mc.MOLES * R * mc.TEMPERATURE 
     choose a volume of 0.001 m^3 for liquids
     """
     mass = mass/1000/N_A#kg
+    print(volume)
     return (mass*temperature*2*pi*k/h/h)**1.5 * volume /n_part/N_A
 
 def vibrational_partition_function(frequencies, temperature=mc.TEMPERATURE):
