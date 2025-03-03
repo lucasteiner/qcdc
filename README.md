@@ -1,3 +1,4 @@
+![project logo](https://github.com/lucasteiner/qcdc/blob/main/assets/logo.jpeg)
 # *qcdc*
 *Q*uantum *C*hemical *D*ata *C*ollection is a python3 program 
 which walks through the directory tree and collects data from Turbomole and Orca files.
