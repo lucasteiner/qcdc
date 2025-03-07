@@ -96,6 +96,16 @@ def main():
         # Post-processing for all calculations of a folder
         if combined:
             for calculation in combined:
+
+                # Symmetry assignment, only if there exists an electronic energy
+                if calculation.get('Elements') is not None and mc.COMPUTE_SYMMETRY:
+                    calculation['Point Group'], calculation['Symmetry Number'] = common_functions.determine_point_group_and_symmetry_number(calculation['Elements'], calculation['xyz Coordinates'])
+                    if calculation['Symmetry Number'] is None:
+                        raise KeyError(f"No symmetry number assigned for Point Group {calculation['Point Group']}, please add it to symmetry_number_lookup")
+                else:
+                    calculation['Point Group'] = None
+                    calculation['Symmetry Number'] = 1
+
                 # If frequencies are present, coordinates should also be present
                 if calculation.get('Frequency Calculation'):
                     try:
@@ -103,7 +113,8 @@ def main():
                             calculation,
                             calculation['Elements'],
                             calculation['xyz Coordinates'],
-                            calculation['Frequencies']
+                            calculation['Frequencies'],
+                            calculation['Symmetry Number']
                         )
                     except KeyError as e:
                         print(f"{e} in derive_data. Some data not found")

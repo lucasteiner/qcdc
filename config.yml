@@ -16,5 +16,6 @@ AMU : 1.6605390666e-27
 WAVENUMBERS2KJMOL : 0.011962656563869701
 CONSTANTX : 0.0021988389213882936 # *pi**0.5 * ((8*pi*pi*k/h/h)**3 *(mc.AMU**3*mc.BOHR2METER**6))**0.5
 SIGN_INV_THR : 100 # cm-1, threshold for sign inversion of imaginary frequencies
+COMPUTE_SYMMETRY : False # Slow, if True, 'Point Group' and 'Symmetry Number' is available
 #we did not yet implement anything with symmetry. 
 #linear molecules and atoms could be problematic, 

@@ -303,8 +303,8 @@ def parse_orca_input(ser, input_file, files):
             ser['Geometry Optimization'] = "opt" in cut_line
         if cut_line.startswith('!') and not ser['Frequency Calculation']:
             ser['Frequency Calculation'] = "freq" in cut_line
-        #if cut_line.startswith('!'): and not ser['Transition State Search']:
-        #    ser['Transition State Search'] = "tsopt" in cut_line
+        if cut_line.startswith('!') and not ser['Transition State Search']:
+            ser['Transition State Optimization'] = "tsopt" in cut_line
         #if cut_line.startswith('!'): and not ser['Transition State Search']:
         #    ser['Transition State Search'] = "neb-ts" in cut_line
         if cut_line.startswith('*') and not xyz_input_coordinates_contained_in_output_file:
@@ -330,21 +330,26 @@ def parse_orca_input(ser, input_file, files):
         #print(start_of_coordinate_section, end_of_coordinate_section)
         # print(input_file)
         # print(input_file[start_of_coordinate_section: end_of_coordinate_section])
-        ser['Elements'], ser['xyz Coordinates'], ser['Number of Atoms'] = parse_orca_input_coordinates(input_file[start_of_coordinate_section: end_of_coordinate_section])
+        ser['Elements'], ser['xyz Input Coordinates'], ser['Number of Atoms'] = parse_orca_input_coordinates(input_file[start_of_coordinate_section: end_of_coordinate_section])
     elif xyz_input_coordinates_file_name:
         try:
             # Case insensitive reading, case sensitive filename
-            ser['Number of Atoms'], _, ser['Elements'], ser['xyz Coordinates'] = common_functions.read_xyz(
+            ser['Number of Atoms'], _, ser['Elements'], ser['xyz Input Coordinates'] = common_functions.read_xyz(
                     ser['Root'] + '/' + next((filename for filename in files if filename.lower() == xyz_input_coordinates_file_name), None)
                     )
         except TypeError as e:
             print(f"{e}: xyz file not found in {ser['Root']}")
-
     elif internal_input_coordinates_contained_in_output_file:
         print('Internal Coordinates are not yet handeled')
         return
     else:
         raise ValueError
+
+    try:
+        if ser['xyz Input Coordinates'] and not (ser['Geometry Optimization'] or ser['Transition State Optimization']):
+            ser['xyz Coordinates'] = ser['xyz Input Coordinates']
+    except KeyError as e:
+        print(f"{e} in ORCA coordinates handling")
 
 
     #if not ser['Elements']:

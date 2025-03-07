@@ -233,7 +233,7 @@ def calc_grimme_short (freq_cm, temperature=mc.TEMPERATURE):
 
 #Frequency dependent stuff could be moved into different function,
 #such that this can be executed for all calculations
-def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERATURE):
+def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERATURE, sigma=1):
     """
     This function derives all kind of physical data from the collected values
     Frequencies are needed for most of the values
@@ -249,12 +249,11 @@ def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERA
     ser['Translational Partition Function'] = translational_partition_function(ser[mc.M_MASS])
     ser['Translational Partition Function for Liquids'] = translational_partition_function(ser[mc.M_MASS], volume=1e-3)
 
-    ser['Point Group'], ser['Symmetry Number'] = determine_point_group_and_symmetry_number(elements, coordinates)
-    if ser['Symmetry Number'] is None:
-        raise KeyError(f"No symmetry number assigned for Point Group {ser['Point Group']}, please add it to symmetry_number_lookup")
 
     if len(coordinates) == 1:
         ser['Single Atom'] = True
+        ser['Translational Partition Function'] = translational_partition_function(ser[mc.M_MASS])
+        ser['Translational Partition Function for Liquids'] = translational_partition_function(ser[mc.M_MASS], volume=1e-3)
         return
         # to be implemented
 
@@ -273,12 +272,14 @@ def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERA
 
     # Ignore frequencies 
     frequencies = np.array(frequencies)
+    #print('f', frequencies)
     positive_frequencies = frequencies[frequencies > 0]
+    #print('p', positive_frequencies)
 
     # Calculate Partition Functions
     ser['Translational Partition Function'] = translational_partition_function(ser[mc.M_MASS])
     ser['Translational Partition Function for Liquids'] = translational_partition_function(ser[mc.M_MASS], volume=1e-3)
-    ser['Rotational Partition Function'] = rotational_partition_function(momi, sigma=ser['Symmetry Number'])
+    ser['Rotational Partition Function'] = rotational_partition_function(momi, sigma=sigma)
 
     ser['Vibrational Partition Function'] = vibrational_partition_function(positive_frequencies)
     ser['Zero Point Energy'] = zero_point_energy(positive_frequencies)
@@ -294,16 +295,25 @@ def derive_data (ser, elements, coordinates, frequencies, temperature=mc.TEMPERA
     ser['Chemical Potential for Liquids'] -= ser['qRRHO']
 
     # Calculate Partition Functions with sign inversion for imaginary frequencies smaller than 100 in magnitude. Change value in config file.
-    sign_inverted_frequencies = frequencies[np.abs(frequencies) > 0]
-    sign_inverted_frequencies[sign_inverted_frequencies <= mc.SIGN_INV_THR] = None
-    sign_inverted_frequencies[sign_inverted_frequencies > mc.SIGN_INV_THR] = np.abs(sign_inverted_frequencies[sign_inverted_frequencies > mc.SIGN_INV_THR])
+    sign_inverted_frequencies = frequencies[frequencies > -np.abs(mc.SIGN_INV_THR)] # we take every frequency larger than the threshold
+    sign_inverted_frequencies = np.abs(sign_inverted_frequencies) # turn them positive
+    sign_inverted_frequencies = sign_inverted_frequencies[sign_inverted_frequencies > 0] # remove 0 values
+    #print('1', sign_inverted_frequencies)
 
 
     # Calculate Partition Functions which are effected by sign inversion in frequencies
-    ser['Chemical Potential (sign inverted)'] = chemical_potential(zero_point_energy(sign_inverted_frequencies), ser['Translational Partition Function'],
-                                                   vibrational_partition_function(sign_inverted_frequencies), ser['Rotational Partition Function'])
-    ser['Chemical Potential for Liquids (sign inverted)'] = chemical_potential(zero_point_energy(sign_inverted_frequencies), ser['Translational Partition Function for Liquids'],
-                                                   vibrational_partition_function(sign_inverted_frequencies), ser['Rotational Partition Function'])
+    ser['Chemical Potential (sign inverted)'] = chemical_potential(
+            zero_point_energy(sign_inverted_frequencies), 
+            ser['Translational Partition Function'], 
+            vibrational_partition_function(sign_inverted_frequencies), 
+            ser['Rotational Partition Function']
+            )
+    ser['Chemical Potential for Liquids (sign inverted)'] = chemical_potential(
+            zero_point_energy(sign_inverted_frequencies), 
+            ser['Translational Partition Function for Liquids'], 
+            vibrational_partition_function(sign_inverted_frequencies), 
+            ser['Rotational Partition Function']
+            )
 
     # Calculate and Apply Correcture Term for Vibrational Partition Function
     low_sign_inverted_frequencies = sign_inverted_frequencies[sign_inverted_frequencies < mc.QRRHO_CUTOFF]

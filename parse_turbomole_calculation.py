@@ -81,7 +81,6 @@ def parse_turbomole(root, dirs, files):
     
     return ser
 
-
 def get_control2(ser, root, filename):
     """
     Scans the text and produces tokens from the control file.
@@ -113,6 +112,8 @@ def get_control2(ser, root, filename):
                     ser['BasisForElement'] = None
             elif token.startswith('disp'):
                 ser['Dispersion'] = token.strip('\n')
+            elif token.startswith('dipole from ridft'):
+                ser['Dipole'] = extract_dipole_moment_components(token)
             elif token.startswith('ssquare'):
                 ser['S2'] = float(token.split()[3])
         ser['filenames'] = dict(re.findall(r'\$(\S*)\s[^$]*?\sfile=(\S*)', string, re.DOTALL))
@@ -120,6 +121,34 @@ def get_control2(ser, root, filename):
 
 equality_re = re.compile(r"(\S+)\s*=\s*(\S+)")
 equality_basis_re = re.compile(r"=([a-z]{1,2})\s(\S+)")
+
+def extract_dipole_moment_components(text):
+    """
+    Extracts the dipole moment components (x, y, z) and the total dipole moment from the given text.
+
+    Parameters:
+        text (str): The input text containing the dipole moment information.
+    
+    Returns:
+        dict: A dictionary with 'x', 'y', 'z', and 'total' dipole moments in appropriate units.
+    """
+    # Regex for extracting x, y, z components of dipole moment
+    xyz_pattern = r"x\s+([-+]?\d+\.\d+)\s+y\s+([-+]?\d+\.\d+)\s+z\s+([-+]?\d+\.\d+)"
+    # Regex for extracting total dipole moment
+    total_pattern = r"\| dipole \| =\s+([\d\.]+)"
+    
+    xyz_match = re.search(xyz_pattern, text)
+    total_match = re.search(total_pattern, text)
+
+    if xyz_match and total_match:
+        return {
+            "x": float(xyz_match.group(1)),
+            "y": float(xyz_match.group(2)),
+            "z": float(xyz_match.group(3)),
+            "total": float(total_match.group(1))
+        }
+    
+    return None  # Return None if parsing fails
 
 
 def right_words(substringlist, string):
